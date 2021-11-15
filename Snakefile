@@ -18,7 +18,8 @@ rule calc_margin:
     input:
         tumor = "{patient_id}/{lesion_id}/{patient_id}_L{lesion_id}_Tumor.nii.gz",
         ablation = "{patient_id}/{lesion_id}/{patient_id}_L{lesion_id}_Ablation.nii.gz",
-        liver = "{patient_id}/{lesion_id}/{patient_id}_L{lesion_id}_Liver.nii.gz",
+        ablation_source = "{patient_id}/{lesion_id}/{patient_id}_L{lesion_id}_Ablation_Source.nii.gz",
+        tumor_source = "{patient_id}/{lesion_id}/{patient_id}_L{lesion_id}_Tumor_Source.nii.gz",
 
     params:
         patient_id = "{patient_id}",
@@ -28,17 +29,17 @@ rule calc_margin:
     benchmark:
         "_benchmarks/{patient_id}_L{lesion_id}.margin.benchmark.txt"
     output:
-        margin = "_intermediate/distances/{patient_id}_L{lesion_id}_Distances.xlsx",
+        margin = "_intermediate/distances/{patient_id}_L{lesion_id}_Radiomics.xlsx",
         histogram = "_output/histograms/{patient_id}_L{lesion_id}_Histogram.png",
     shell:
-        "python -m TADS \
+        "python -m AVOLT \
             --tumor {input.tumor} \
             --ablation {input.ablation} \
-            --liver {input.liver}\
+            --ablation-source {input.ablation_source}\
+            --tumor-source {input.tumor_source_source}\
             --patient-id {params.patient_id} \
             --lesion-id {params.lesion_id} \
-            --output-margin {output.margin} \
-            --output-histogram {output.histogram}"
+            --output-radiomics {output.radiomics} "
 
 
 def input_aggregate_margins_patient(wildcards):
@@ -57,7 +58,7 @@ rule aggregate_margins_patient:
 
 def input_aggregate_margins_all(wildcards):
     patient_ids = get_patient_ids()
-    return expand("_aggregated/{patient_id}_Distances.xlsx",
+    return expand("_aggregated/{patient_id}_Radiomics.xlsx",
                patient_id = patient_ids)
 
 rule aggregate_margins_all:

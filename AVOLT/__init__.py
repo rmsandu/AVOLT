@@ -1,1 +1,1 @@
-from AVOT.version import __version__
+from AVOLT.version import __version__
