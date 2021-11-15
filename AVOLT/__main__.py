@@ -11,7 +11,8 @@ from datetime import date
 from AVOLT.extract_radiomics import RadiomicsMetrics
 import numpy as np
 import pandas as pd
-
+from AVOLT.inner_ellipsoid import FindMaximumVolumeInscribedEllipsoid
+from AVOLT.outer_ellipsoid import get_outer_volume_ml
 
 from AVOLT.utils.niftireader import load_image
 
@@ -73,6 +74,9 @@ if __name__ == '__main__':
     pixdim = ablation_source_nii.header['pixdim']
     spacing = (pixdim[1], pixdim[2], pixdim[3])
 
+    # %% Get inner and outer volume
+    inner_ellipsoid_volume = FindMaximumVolumeInscribedEllipsoid(ablation_file)
+    outer_ellipsoid_volume = get_outer_volume_ml(ablation_file)
     # %% Get Radiomics Metrics (shape and intensity)
     # ABLATION
     ablation_radiomics_metrics = RadiomicsMetrics(ablation_source, ablation_file)
@@ -93,7 +97,9 @@ if __name__ == '__main__':
 
     patient_df = pd.DataFrame(data={
             'Patient': [patient_id] * len(df_tumor_metrics_1set),
-            'Lesion': [lesion_id] * len(df_tumor_metrics_1set)})
+            'Lesion': [lesion_id] * len(df_tumor_metrics_1set),
+            'InnerEllipsoidVolume': [inner_ellipsoid_volume] *  len(df_tumor_metrics_1set),
+            'OuterEllipsoidVolume': [outer_ellipsoid_volume] * len(df_tumor_metrics_1set)})
 
     df_metrics = pd.concat([patient_df, df_ablation_metrics_1set, df_tumor_metrics_1set], axis=1)
     writer = pd.ExcelWriter(output_file_radiomics)

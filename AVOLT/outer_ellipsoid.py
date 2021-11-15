@@ -2,21 +2,41 @@
 """
 @author: Raluca Sandu (RMS)
 """
-
+import SimpleITK as sitk
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.linalg as la
-#from skimage.draw import ellipsoid
-#from inner_ellipsoid import inner_ellipsoid_fit
+from skimage.draw import ellipsoid
 
 
-def outer_ellipsoid_fit(points, tol=0.001):
+def get_surface_points(img_file):
+    """
+    :param img_file: image filepath
+    :return: surface points of a 3d volume
+    """
+    dcm_img = sitk.ReadImage(img_file)
+    x_spacing, y_spacing, z_spacing = dcm_img.GetSpacing()
+    contour = sitk.LabelContour(dcm_img, fullyConnected=False)
+    contours = sitk.GetArrayFromImage(contour)
+    vertices_locations = contours.nonzero()
+    vertices_unravel = list(zip(vertices_locations[0], vertices_locations[1], vertices_locations[2]))
+    vertices_list = [list(vertices_unravel[i]) for i in range(0, len(vertices_unravel))]
+
+    surface_points = np.array(vertices_list)
+    surface_points = surface_points.astype(np.float64)
+    # surface_points[:, 0] *= x_spacing/10
+    # surface_points[:, 1] *= y_spacing/10
+    # surface_points[:, 2] *= z_spacing/10
+    return surface_points
+
+
+def outer_ellipsoid_fit(img_file, tol=0.001):
     """
     Find the minimum volume ellipsoid enclosing (outside) a set of points.
     Return A, c where the equation for the ellipse given in "center form" is
     (x-c).T * A * (x-c) = 1
     """
-
+    points = get_surface_points(img_file)
     points = np.asmatrix(points)
     N, d = points.shape
     Q = np.column_stack((points, np.ones(N))).T
@@ -34,12 +54,37 @@ def outer_ellipsoid_fit(points, tol=0.001):
 
     c = u * points  # center of ellipsoid
     A = la.inv(points.T * np.diag(u) * points - c.T * c) / d
+    #return np.asarray(A), np.squeeze(np.asarray(c))
+    U, D, V = la.svd(np.asarray(A))
+    rx, ry, rz = 1. / np.sqrt(D)
+    return rx, ry, rz
 
-    # U, D, V = la.svd(np.asarray(A))
-    # rx, ry, rz = 1. / np.sqrt(D)
-    #
-    # return rx, ry, rz
-    return np.asarray(A), np.squeeze(np.asarray(c))
+
+def volume_ellipsoid_spacing(a, b, c, spacing):
+    """
+
+    :param a: major semi-axis of an ellipsoid
+    :param b: least semi-axis of an ellipsoid
+    :param c:  minor semi-axis of an ellipsoid
+    :param spacing: spacing of a grid, tuple like e.g. (1,  1, 1)
+    :return: volume of an ellipsoid in ml, taking spacing into account
+    """
+    ellipsoid_array = ellipsoid(a, b, c, spacing)
+    ellipsoid_non_zero = ellipsoid_array.nonzero()
+    num_voxels = len(list(zip(ellipsoid_non_zero[0],
+                              ellipsoid_non_zero[1],
+                              ellipsoid_non_zero[2])))
+    volume_object_ml = (num_voxels * spacing[0] * spacing[1] * spacing[2]) / 1000
+
+    return volume_object_ml
+
+
+def get_outer_volume_ml(img_file):
+    rx, ry, rz = outer_ellipsoid_fit(img_file)
+    dcm_img = sitk.ReadImage(img_file)
+    spacing = dcm_img.GetSpacing()
+    vol_outer_ellipsoid = volume_ellipsoid_spacing(rx, ry, rz, spacing)
+    return vol_outer_ellipsoid
 
 
 def plot_ellipsoid(A, centroid, color, ax):
@@ -68,24 +113,3 @@ def plot_ellipsoid(A, centroid, color, ax):
     ax.set_xlabel('X-Axis')
 
 
-if __name__ == '__main__':
-
-
-    #some random points
-    points = np.array([[ 0.53135758, -0.25818091, -0.32382715],
-                   [ 0.58368177, -0.3286576,  -0.23854156,],
-                   [ 0.18741533,  0.03066228, -0.94294771],
-                   [ 0.65685862, -0.09220681, -0.60347573],
-                   [ 0.63137604, -0.22978685, -0.27479238],
-                   [ 0.59683195, -0.15111101, -0.40536606],
-                   [ 0.68646128,  0.0046802,  -0.68407367],
-                   [ 0.62311759,  0.0101013,  -0.75863324]])
-    A_outer, centroid_outer = outer_ellipsoid_fit(points)
-    # B, d = inner_ellipsoid_fit(points)
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(points[:, 0], points[:, 1], points[:, 2], c='blue', label='OG Points')
-    plot_ellipsoid(A_outer, centroid_outer, 'green', ax)
-    # plot_ellipsoid(B, d, 'orange', ax)
-    plt.legend(loc='best')
-    plt.show()

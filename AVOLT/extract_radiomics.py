@@ -3,10 +3,13 @@
 @author: Raluca Sandu
 """
 from enum import Enum
+
 import numpy as np
 import pandas as pd
 from radiomics import featureextractor
-#from scipy import ndimage
+
+
+# from scipy import ndimage
 
 
 class RadiomicsMetrics(object):
@@ -19,9 +22,9 @@ class RadiomicsMetrics(object):
         class AxisMetricsRadiomics(Enum):
             center_of_mass_x, center_of_mass_y, center_of_mass_z, \
             center_of_mass_index_x, center_of_mass_index_y, center_of_mass_index_z, \
-            elongation, sphericity, mesh_volume, intensity_mean, intensity_variance, intensity_uniformity, \
+            elongation, sphericity, mesh_volume, volume_feature,  \
             diameter3D, diameter2D_slice, diameter2D_col, diameter2D_row, major_axis_length, \
-            least_axis_length, minor_axis_length, gray_lvl_nonuniformity, gray_lvl_variance = range(21)
+            least_axis_length, minor_axis_length = range(17)
 
         axis_metrics_results = np.zeros((1, len(AxisMetricsRadiomics.__members__.items())))
         # %% Extract the diameter axis
@@ -56,10 +59,16 @@ class RadiomicsMetrics(object):
             axis_metrics_results[0, AxisMetricsRadiomics.center_of_mass_index_y.value] = None
             axis_metrics_results[0, AxisMetricsRadiomics.center_of_mass_index_z.value] = None
         try:
-            axis_metrics_results[0, AxisMetricsRadiomics.mesh_volume.value] = (result['original_shape_MeshVolume'].tolist())/1000
+            axis_metrics_results[0, AxisMetricsRadiomics.mesh_volume.value] = (result[
+                                                                                   'original_shape_MeshVolume'].tolist()) / 1000
         except Exception:
             axis_metrics_results[0, AxisMetricsRadiomics.mesh_volume.value] = None
         # getMeshVolumeFeatureValue()
+        try:
+            axis_metrics_results[0, AxisMetricsRadiomics.volume_feature.value] = (result[
+                                                                              'original_shape_VoxelVolume'].tolist()) / 1000
+        except Exception:
+            axis_metrics_results[0, AxisMetricsRadiomics.volume_feature.value] = None
         try:
             axis_metrics_results[0, AxisMetricsRadiomics.elongation.value] = result['original_shape_Elongation']
         except Exception:
@@ -68,20 +77,6 @@ class RadiomicsMetrics(object):
             axis_metrics_results[0, AxisMetricsRadiomics.sphericity.value] = result['original_shape_Sphericity']
         except Exception:
             axis_metrics_results[0, AxisMetricsRadiomics.sphericity.value] = None
-        try:
-            axis_metrics_results[0, AxisMetricsRadiomics.intensity_mean.value] = result['original_firstorder_Mean']
-        except Exception:
-            axis_metrics_results[0, AxisMetricsRadiomics.intensity_mean.value] = None
-        try:
-            axis_metrics_results[0, AxisMetricsRadiomics.intensity_variance.value] = result[
-                'original_firstorder_Variance']
-        except Exception:
-            axis_metrics_results[0, AxisMetricsRadiomics.intensity_variance.value] = None
-        try:
-            axis_metrics_results[0, AxisMetricsRadiomics.intensity_uniformity.value] = result[
-                'original_firstorder_Uniformity']
-        except Exception:
-            axis_metrics_results[0, AxisMetricsRadiomics.intensity_uniformity.value] = None
         try:
             axis_metrics_results[0, AxisMetricsRadiomics.diameter3D.value] = result['original_shape_Maximum3DDiameter']
         except Exception:
@@ -117,16 +112,6 @@ class RadiomicsMetrics(object):
                 'original_shape_MinorAxisLength']
         except Exception:
             axis_metrics_results[0, AxisMetricsRadiomics.minor_axis_length.value] = None
-        try:
-            axis_metrics_results[0, AxisMetricsRadiomics.gray_lvl_nonuniformity.value] = result[
-                'original_gldm_GrayLevelNonUniformity']
-        except Exception:
-            axis_metrics_results[0, AxisMetricsRadiomics.gray_lvl_nonuniformity.value] = None
-        try:
-            axis_metrics_results[0, AxisMetricsRadiomics.gray_lvl_variance.value] = result[
-                'original_gldm_GrayLevelVariance']
-        except Exception:
-            axis_metrics_results[0, AxisMetricsRadiomics.gray_lvl_variance.value] = None
 
         # %% Save to DataFrame
         self.axis_metrics_results_df = pd.DataFrame(data=axis_metrics_results, index=list(range(1)),
