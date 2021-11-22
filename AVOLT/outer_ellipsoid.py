@@ -7,27 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import numpy.linalg as la
 from skimage.draw import ellipsoid
-
-
-def get_surface_points(img_file):
-    """
-    :param img_file: image filepath
-    :return: surface points of a 3d volume
-    """
-    dcm_img = sitk.ReadImage(img_file)
-    x_spacing, y_spacing, z_spacing = dcm_img.GetSpacing()
-    contour = sitk.LabelContour(dcm_img, fullyConnected=False)
-    contours = sitk.GetArrayFromImage(contour)
-    vertices_locations = contours.nonzero()
-    vertices_unravel = list(zip(vertices_locations[0], vertices_locations[1], vertices_locations[2]))
-    vertices_list = [list(vertices_unravel[i]) for i in range(0, len(vertices_unravel))]
-
-    surface_points = np.array(vertices_list)
-    surface_points = surface_points.astype(np.float64)
-    # surface_points[:, 0] *= x_spacing/10
-    # surface_points[:, 1] *= y_spacing/10
-    # surface_points[:, 2] *= z_spacing/10
-    return surface_points
+import AVOLT.utils.get_surface_points as pts
 
 
 def outer_ellipsoid_fit(img_file, tol=0.001):
@@ -36,7 +16,7 @@ def outer_ellipsoid_fit(img_file, tol=0.001):
     Return A, c where the equation for the ellipse given in "center form" is
     (x-c).T * A * (x-c) = 1
     """
-    points = get_surface_points(img_file)
+    points = pts.get_surface_points(img_file)
     points = np.asmatrix(points)
     N, d = points.shape
     Q = np.column_stack((points, np.ones(N))).T
@@ -62,7 +42,6 @@ def outer_ellipsoid_fit(img_file, tol=0.001):
 
 def volume_ellipsoid_spacing(a, b, c, spacing):
     """
-
     :param a: major semi-axis of an ellipsoid
     :param b: least semi-axis of an ellipsoid
     :param c:  minor semi-axis of an ellipsoid
@@ -80,11 +59,16 @@ def volume_ellipsoid_spacing(a, b, c, spacing):
 
 
 def get_outer_volume_ml(img_file):
-    rx, ry, rz = outer_ellipsoid_fit(img_file)
-    dcm_img = sitk.ReadImage(img_file)
-    spacing = dcm_img.GetSpacing()
-    vol_outer_ellipsoid = volume_ellipsoid_spacing(rx, ry, rz, spacing)
-    return vol_outer_ellipsoid
+    try:
+        rx, ry, rz = outer_ellipsoid_fit(img_file)
+        dcm_img = sitk.ReadImage(img_file)
+        spacing = dcm_img.GetSpacing()
+        #spacing = -1
+        vol_outer_ellipsoid = volume_ellipsoid_spacing(rx, ry, rz, spacing)
+        return vol_outer_ellipsoid
+    except ValueError:
+        error_type = -1
+        raise error_type
 
 
 def plot_ellipsoid(A, centroid, color, ax):
