@@ -7,7 +7,7 @@ from enum import Enum
 import numpy as np
 import pandas as pd
 from radiomics import featureextractor
-
+from AVOLT.utils.change_segmentation_label_value import change_segmentation_value_to255
 
 # from scipy import ndimage
 
@@ -28,14 +28,19 @@ class RadiomicsMetrics(object):
 
         axis_metrics_results = np.zeros((1, len(AxisMetricsRadiomics.__members__.items())))
         # %% Extract the diameter axis
-        settings = {'label': 255, 'correctMask': True}
+        settings = {'label': 255, 'correctMask':True}
         extractor = featureextractor.RadiomicsFeatureExtractor(additionalInfo=True, **settings)
         try:
             result = extractor.execute(self.input_image, self.mask_image)
-        except Exception as e:
-            print(repr(e))
-            self.error_flag = True
-            return
+        except ValueError as e:
+            if len(e.args) > 0 and e.args[0] == 'Label (255) not present in mask. Choose from [1]':
+                change_segmentation_value_to255(mask_image)
+                extractor = featureextractor.RadiomicsFeatureExtractor(additionalInfo=True, **settings)
+                result = extractor.execute(self.input_image, self.mask_image)
+            else:
+                print(repr(e))
+                self.error_flag = True
+                return
         try:
             axis_metrics_results[0, AxisMetricsRadiomics.center_of_mass_x.value] = \
                 result['diagnostics_Mask-original_CenterOfMass'][0]
