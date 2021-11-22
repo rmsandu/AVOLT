@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 if __name__ == '__main__':
     input_files = snakemake.input
     output_file = snakemake.output[0]
@@ -44,8 +45,9 @@ if __name__ == '__main__':
     data_frames = []
 
     for input_file in input_files:
+        print(input_file)
         df = pd.read_excel(input_file, sheet_name='radiomics')
-    data_frames.append(df)
+        data_frames.append(df)
 
     data_aggregated = pd.concat(data_frames)
     data_aggregated.to_excel(output_file, sheet_name='radiomics', index=False)

@@ -1,6 +1,8 @@
 import os
 from snakemake.utils import validate, min_version
-
+# To run snakemake:
+# 1. install module setup.py of the Python package into the virtual repository
+# 2. run : snakemake --profile profiles/local --directory ../../tests/test_data _output/Aggregated.xlsx
 ##### set minimum snakemake version #####
 min_version("5.17.0")
 
@@ -24,27 +26,25 @@ rule calc_margin:
     params:
         patient_id = "{patient_id}",
         lesion_id = "{lesion_id}",
+
     log:
         "_logs/{patient_id}_L{lesion_id}_calc_margin.log"
-    benchmark:
-        "_benchmarks/{patient_id}_L{lesion_id}.margin.benchmark.txt"
     output:
-        margin = "_intermediate/distances/{patient_id}_L{lesion_id}_Radiomics.xlsx",
-        histogram = "_output/histograms/{patient_id}_L{lesion_id}_Histogram.png",
+        radiomics = "_intermediate/radiomics/{patient_id}_L{lesion_id}_Radiomics.xlsx",
     shell:
-        "python -m AVOLT \
+          "python -m AVOLT \
             --tumor {input.tumor} \
             --ablation {input.ablation} \
             --ablation-source {input.ablation_source}\
-            --tumor-source {input.tumor_source_source}\
+            --tumor-source {input.tumor_source}\
             --patient-id {params.patient_id} \
             --lesion-id {params.lesion_id} \
-            --output-radiomics {output.radiomics} "
+            --output-radiomics {output.radiomics}"
 
 
 def input_aggregate_margins_patient(wildcards):
     lesion_ids = get_lesion_ids(wildcards.patient_id)
-    return expand("_intermediate/distances/{patient_id}_L{lesion_id}_Distances.xlsx",
+    return expand("_intermediate/radiomics/{patient_id}_L{lesion_id}_Radiomics.xlsx",
                lesion_id = lesion_ids,
                patient_id = wildcards.patient_id)
 
@@ -52,7 +52,7 @@ rule aggregate_margins_patient:
     input:
         input_aggregate_margins_patient
     output:
-        "_aggregated/{patient_id}_Distances.xlsx"
+        "_aggregated/{patient_id}_Radiomics.xlsx"
     script:
         "aggregate_data.py"
 
