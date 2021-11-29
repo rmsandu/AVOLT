@@ -12,7 +12,6 @@ def get_surface_points(img_file):
     :return: surface points of a 3d volume
     """
     dcm_img = sitk.ReadImage(img_file)
-    x_spacing, y_spacing, z_spacing = dcm_img.GetSpacing()
     contour = sitk.LabelContour(dcm_img, fullyConnected=False)
     contours = sitk.GetArrayFromImage(contour)
     vertices_locations = contours.nonzero()
@@ -21,7 +20,8 @@ def get_surface_points(img_file):
 
     surface_points = np.array(vertices_list)
     surface_points = surface_points.astype(np.float64)
-    # surface_points[:, 0] *= x_spacing/10
-    # surface_points[:, 1] *= y_spacing/10
-    # surface_points[:, 2] *= z_spacing/10
+    x_spacing, y_spacing, z_spacing = dcm_img.GetSpacing()
+    #surface_points[:, 0] *= x_spacing/10
+    #surface_points[:, 1] *= y_spacing/10
+    #surface_points[:, 2] *= z_spacing/10
     return surface_points
