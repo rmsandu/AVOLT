@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from radiomics import featureextractor
 from AVOLT.utils.change_segmentation_label_value import change_segmentation_value_to255
-
+from AVOLT.utils.resample_segmentations import ResizeSegmentation
 # from scipy import ndimage
 
 
@@ -38,9 +38,18 @@ class RadiomicsMetrics(object):
                 extractor = featureextractor.RadiomicsFeatureExtractor(additionalInfo=True, **settings)
                 result = extractor.execute(self.input_image, self.mask_image)
             else:
-                print(repr(e))
-                self.error_flag = True
-                return
+                try:
+                    resampling = ResizeSegmentation(mask_image, input_image)
+                    self.mask_image = resampling.resample_segmentation()
+
+                    result = extractor.execute(self.input_image, self.mask_image)
+                except ValueError as e:
+                    print("-----------------------------ERRORR-------------------")
+                    print(repr(e))
+                    print(self.input_image)
+                    print(self.mask_image)
+                    self.error_flag = True
+                    return
         try:
             axis_metrics_results[0, AxisMetricsRadiomics.center_of_mass_x.value] = \
                 result['diagnostics_Mask-original_CenterOfMass'][0]
