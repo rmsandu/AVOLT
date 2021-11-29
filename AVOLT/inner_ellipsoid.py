@@ -7,7 +7,6 @@ from mpl_toolkits.mplot3d import axes3d
 import cvxpy as cp
 import matplotlib.pyplot as plt
 import numpy as np
-#import sklearn.datasets
 from scipy.spatial import ConvexHull
 import numpy.linalg as la
 import AVOLT.utils.get_surface_points as pts
@@ -40,6 +39,7 @@ def FindMaximumVolumeInscribedEllipsoid(img_file):
     ball_vol = 4 / 3.0 * np.pi * (1.0 ** 3)
     # ax = Plot(points, hull, B.value, d.value)
     # return B.value, d.value, ax
-    vol_formula_inner = np.sqrt(la.det(B.value) / 1000) * ball_vol
+    # vol_formula_inner = np.sqrt(la.det(B.value) / 1000) * ball_vol
+    vol_formula_inner = (np.linalg.det(B.value) * ball_vol) / 1000
     return vol_formula_inner
 

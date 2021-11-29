@@ -65,7 +65,7 @@ def get_outer_volume_ml(img_file):
         spacing = dcm_img.GetSpacing()
         #spacing = -1
         vol_outer_ellipsoid = volume_ellipsoid_spacing(rx, ry, rz, spacing)
-        return vol_outer_ellipsoid
+        return vol_outer_ellipsoid   # multiply with 1000 to convert to ml
     except ValueError:
         error_type = -1
         raise error_type
