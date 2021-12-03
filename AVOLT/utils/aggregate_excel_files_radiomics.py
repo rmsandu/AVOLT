@@ -12,7 +12,7 @@ import os
 import pandas as pd
 
 
-input_folder_path = r"C:\develop\AVOLT\excel_data\radiomics"
+input_folder_path = r"C:\develop\AVOLT\excel_data\ellipsoid"
 files = os.listdir(input_folder_path)
 data_frames = []
 
@@ -24,7 +24,7 @@ for input_file in files:
     data_frames.append(single_df)
 
 data_aggregated = pd.concat(data_frames)
-filepath_excel = "../plots/QAM_Radiomics.xlsx"
+filepath_excel = "../plots/QAM_Inner_Outer_Ellipsoid.xlsx"
 writer = pd.ExcelWriter(filepath_excel)
 data_aggregated.to_excel(writer, sheet_name='radiomics', index=False, float_format='%.2f')
 writer.save()
