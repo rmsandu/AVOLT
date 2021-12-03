@@ -4,8 +4,11 @@
 """
 import os
 import time
+
 import matplotlib
 import matplotlib.pyplot as plt
+from AVOLT.graphing import graphing
+
 matplotlib.use('Agg')
 import pandas as pd
 import seaborn as sns
@@ -51,16 +54,20 @@ def connected_mev_miv(df_radiomics):
     # plt.ylim([-1, 150])
     # labels = np.round(np.asarray(df['PAV']))
     # plt.xticks(x, labels, rotation=45, fontsize=24, color='white')
-    figpath = os.path.join("figures",  "PAV_EAV_MIV_MEV_ellipsoids")
+    figpath = os.path.join("figures", "PAV_EAV_MIV_MEV_ellipsoids")
     graphing.save(figpath, width=12, height=12, ext=["png"], close=True, tight=True, dpi=600)
 
-    b = sns.boxplot(data=df)
+    # df.dropna(inplace=True)
+    fig, ax = plt.subplots(figsize=(12, 10))
+    sns.boxplot(data=df, palette="viridis")
     plt.ylabel('Volume [ml]')
+    fig.show()
     # b.set_xlabel(fontsize=20)
     # plt.ylim([])
     # plt.grid()
-    figpath = os.path.join("figures",  "PAV_EAV_MIV_MEV_ellipsoids_boxplots")
+    figpath = os.path.join("figures", "PAV_EAV_MIV_MEV_ellipsoids_boxplots")
     graphing.save(figpath, width=12, height=12, ext=["png"], close=True, tight=True, dpi=600)
+
 
 def plot_mev_miv(df_radiomics):
     """
@@ -83,9 +90,8 @@ def plot_mev_miv(df_radiomics):
     df['MEV-MIV'] = df['MEV'] - df['MIV']
     df['R(EAV:PAV)'] = df['EAV'] / df['PAV']
 
-
     fig, ax = plt.subplots(figsize=(12, 12))
-    sns.distplot(df['Energy (kJ)'],  hist_kws={"ec": 'black', "align": "mid"},
+    sns.distplot(df['Energy (kJ)'], hist_kws={"ec": 'black', "align": "mid"},
                  axlabel='Energy', ax=ax)
     timestr = time.strftime("%H%M%S-%Y%m%d")
     figpath = os.path.join("figures", 'Energy_distribution_' + timestr + '.png')
@@ -103,7 +109,7 @@ def plot_mev_miv(df_radiomics):
 
     # %% histogram MEV-MIV
     fig, ax = plt.subplots(figsize=(12, 12))
-    sns.distplot(df['MEV-MIV'], color=sns.xkcd_rgb["reddish"], hist_kws={"ec": 'black',  "align": "mid"},
+    sns.distplot(df['MEV-MIV'], color=sns.xkcd_rgb["reddish"], hist_kws={"ec": 'black', "align": "mid"},
                  axlabel='Distribution of Ablation Volume Irregularity (MEV-MIV) (mL)', ax=ax)
 
     timestr = time.strftime("%H%M%S-%Y%m%d")
@@ -146,7 +152,7 @@ def plot_mev_miv(df_radiomics):
     # %%   R (EAV:PAV) on y-axis and MEV-MIV on the x-axis
     fig1, ax5 = plt.subplots(figsize=(12, 12))
     slope, intercept, r_square, p_value, std_err = stats.linregress(df['R(EAV:PAV)'], df['MEV-MIV'])
-    print('p-val mev miv energy:', p_value )
+    print('p-val mev miv energy:', p_value)
     print()
     p = sns.regplot(y="R(EAV:PAV)", x="MEV-MIV", data=df, scatter_kws={"s": 100, "alpha": 0.5},
                     color=sns.xkcd_rgb["reddish"],

@@ -6,12 +6,11 @@ import os
 import time
 
 import matplotlib
-
-matplotlib.use('Agg')
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+matplotlib.use('Agg')
 
 
 def draw_pie(dist,
@@ -39,11 +38,10 @@ def draw_pie(dist,
     return ax
 
 
-def call_plot_pies(df_radiomics, title=None, flag_plot_type=None, flag_overlap=None):
+def call_plot_pies(df_radiomics, title=None, flag_plot_type=None):
     """
 
     PREDICTED VS MEASURED SCATTER PIE CHART with distances represented
-    :param flag_overlap:
     :param flag_plot_type:
     :param df_radiomics:
     :param title:
@@ -52,9 +50,9 @@ def call_plot_pies(df_radiomics, title=None, flag_plot_type=None, flag_overlap=N
     fontsize = 18
     ablation_vol_interpolated_brochure = np.asanyarray(df_radiomics['Predicted_Ablation_Volume']).reshape(
         len(df_radiomics), 1)
-    ablation_vol_measured = np.asarray(df_radiomics['Ablation Volume [ml]']).reshape(len(df_radiomics), 1)
-    df_radiomics['MEV-MIV'] = df_radiomics['Outer Ellipsoid Volume'] - df_radiomics['Inner Ellipsoid Volume']
-    df_radiomics['R(EAV:PAV)'] = df_radiomics['Ablation Volume [ml]'] / df_radiomics['Predicted_Ablation_Volume']
+    ablation_vol_measured = np.asarray(df_radiomics['mesh_volume_ablation']).reshape(len(df_radiomics), 1)
+    df_radiomics['MEV-MIV'] = df_radiomics['OuterEllipsoidVolume'] - df_radiomics['InnerEllipsoidVolume']
+    df_radiomics['R(EAV:PAV)'] = df_radiomics['mesh_volume_ablation'] / df_radiomics['Predicted_Ablation_Volume']
 
     ratios_0 = df_radiomics.safety_margin_distribution_0.tolist()
     ratios_5 = df_radiomics.safety_margin_distribution_5.tolist()
@@ -71,15 +69,16 @@ def call_plot_pies(df_radiomics, title=None, flag_plot_type=None, flag_overlap=N
             ratio_10 = ratios_10[idx] / 100
             if ~(np.isnan(xs)) and ~(np.isnan(ys)):
                 draw_pie([ratio_0, ratio_5, ratio_10], xs, ys, 500, colors=['red', 'orange', 'green'], ax=ax)
-        plt.ylabel('Effective Ablation Volume (ml)', fontsize=fontsize)
-        plt.xlabel('Predicted Ablation Volume (ml)', fontsize=fontsize)
-        plt.xlim([0, 80])
-        plt.ylim([0, 80])
+        plt.ylabel('Effective Ablation Volume [ml]', fontsize=fontsize)
+        plt.xlabel('Predicted Ablation Volume [ml]', fontsize=fontsize)
+        plt.xlim([0, 100])
+        plt.ylim([0, 100])
 
     elif flag_plot_type == 'MEV_MIV':
         # drop the rows where MIV > MEV
-        df_radiomics = df_radiomics[df_radiomics['Outer Ellipsoid Volume'] < 150]
-        print('Nr Samples used for Outer Ellipsoid Volume < 150 ml:', len(df_radiomics))
+        df_radiomics = df_radiomics[df_radiomics['OuterEllipsoidVolume'] <= 200]
+        df_radiomics = df_radiomics[df_radiomics['InnerEllipsoidVolume'] < df_radiomics["mesh_volume_ablation"]]
+        print('Nr Samples used for Outer Ellipsoid Volume < 200 ml:', len(df_radiomics))
         df_radiomics = df_radiomics[df_radiomics['MEV-MIV'] >= 0]
         print('Nr Samples used for MEV-MIV >=0 :', len(df_radiomics))
         r_eav_pav = np.asarray(df_radiomics['R(EAV:PAV)']).reshape(len(df_radiomics), 1)
@@ -92,7 +91,7 @@ def call_plot_pies(df_radiomics, title=None, flag_plot_type=None, flag_overlap=N
             ratio_10 = ratios_10[idx] / 100
             if ~(np.isnan(xs)) and ~(np.isnan(ys)):
                 draw_pie([ratio_0, ratio_5, ratio_10], xs, ys, 500, colors=['red', 'orange', 'green'], ax=ax)
-        plt.xlabel('Ablation Volume Irregularity (MEV-MIV) (mL)', fontsize=fontsize)
+        plt.xlabel('Ablation Volume Irregularity (MEV-MIV) [ml]', fontsize=fontsize)
         plt.ylabel('R(EAV:PAV)', fontsize=fontsize)
 
     # %% EDIT THE PLOTS with colors
@@ -114,14 +113,12 @@ def call_plot_pies(df_radiomics, title=None, flag_plot_type=None, flag_overlap=N
 
 
 if __name__ == '__main__':
-    df_radiomics = pd.read_excel(r"C:\develop\segmentation-eval\Radiomics_MAVERRIC----003328-20200523_.xlsx")
-    # df_acculis = df_radiomics[df_radiomics['Device_name'] == 'Angyodinamics (Acculis)']
-
+    df_radiomics = pd.read_excel(r"C:\develop\AVOLT\AVOLT\plots\QAM_Distances_Radiomics_Chemo_FINAL.xlsx")
+    df_radiomics= df_radiomics[df_radiomics['Device_name'] == 'Angyodinamics (Acculis)']
+    # df_radiomics_all = df_radiomics_all[df_radiomics_all['Proximity_to_surface'] == False]
     df_radiomics_all = df_radiomics[
         df_radiomics['Inclusion_Energy_PAV_EAV'] == True]
-    df_radiomics_all = df_radiomics_all[df_radiomics_all['Inclusion_Margin_Analysis'] == 1]
-    # # %% SELECT DEEP (aka  non-SUBCAPSULAR TUMORS) because we are only interested in plotting those for the moment
-    df_radiomics_all = df_radiomics_all[df_radiomics_all['Proximity_to_surface'] == False]
+
     print('Nr Samples used for margin distribution available initally:', len(df_radiomics_all))
     # %% SEPARATE THE MARGIN DISTRIBUTION
     df_radiomics_all.dropna(subset=['safety_margin_distribution_0',
@@ -130,8 +127,8 @@ if __name__ == '__main__':
                             inplace=True)
     print('Nr Samples used for margin distribution available initally drop nans surfaces:', len(df_radiomics_all))
     # %% PLOT
-    call_plot_pies(df_radiomics_all, title='Non-Subcapsular Tumors', flag_plot_type='MEV_MIV')
-    call_plot_pies(df_radiomics_all, title='Non-Subcapsular Tumors', flag_plot_type='PAV_EAV')
+    call_plot_pies(df_radiomics_all, title='', flag_plot_type='MEV_MIV')
+    call_plot_pies(df_radiomics_all, title='', flag_plot_type='PAV_EAV')
 
     # %% LATERAL ERROR Needle Plotting
     # df_radiomics_acculis.dropna(subset=['ValidationTargetPoint'], inplace=True)

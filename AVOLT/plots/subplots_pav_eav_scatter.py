@@ -9,9 +9,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from AVOLT.graphing import graphing as gh
 from scipy import stats
-
-from AVOLT.utils import graphing as gh
 
 
 def plot_subplots(df_radiomics):
@@ -44,7 +43,6 @@ def plot_subplots(df_radiomics):
 
     print('Nr Samples used:', str(len(df)))
 
-
     # %% 1st plot PAV vs EAV with lin regr
     varx = df['PAV']
     vary = df['EAV']
@@ -59,7 +57,7 @@ def plot_subplots(df_radiomics):
     axes[0].set_ylabel('EAV [ml]', fontsize=fontsize)
     axes[0].set_xlabel('PAV [ml]', fontsize=fontsize)
 
-    #%% Subcapsular 2nd plot
+    # %% Subcapsular 2nd plot
     subcapsular_false = df[df['Proximity_to_surface'] == False]
     subcapsular_true = df[df['Proximity_to_surface'] == True]
     varx = subcapsular_false['PAV']
@@ -87,9 +85,9 @@ def plot_subplots(df_radiomics):
     axes[1].set_yticklabels([])
     axes[1].set_ylabel('')
     axes[1].set_xlabel('PAV [ml]', fontsize=fontsize)
-    #axes[1].set_title('Predicted (PAV) vs Effective Ablation Volume (EAV) for all MWA Devices', fontsize=fontsize, pad=20)
+    # axes[1].set_title('Predicted (PAV) vs Effective Ablation Volume (EAV) for all MWA Devices', fontsize=fontsize, pad=20)
 
-    #%% Chemo 3rd plot
+    # %% Chemo 3rd plot
     chemo_false = df[df['Chemotherapy'] == 'No']
     chemo_true = df[df['Chemotherapy'] == 'Yes']
     varx = chemo_false['PAV']
