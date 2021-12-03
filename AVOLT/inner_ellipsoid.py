@@ -40,6 +40,6 @@ def FindMaximumVolumeInscribedEllipsoid(img_file):
     # ax = Plot(points, hull, B.value, d.value)
     # return B.value, d.value, ax
     # vol_formula_inner = np.sqrt(la.det(B.value) / 1000) * ball_vol
-    vol_formula_inner = (np.linalg.det(B.value) * ball_vol) / 1000
+    vol_formula_inner = np.linalg.det(B.value) * ball_vol
     return vol_formula_inner
 

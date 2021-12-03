@@ -21,7 +21,7 @@ def get_surface_points(img_file):
     surface_points = np.array(vertices_list)
     surface_points = surface_points.astype(np.float64)
     x_spacing, y_spacing, z_spacing = dcm_img.GetSpacing()
-    #surface_points[:, 0] *= x_spacing/10
-    #surface_points[:, 1] *= y_spacing/10
-    #surface_points[:, 2] *= z_spacing/10
+    surface_points[:, 0] *= x_spacing/10
+    surface_points[:, 1] *= y_spacing/10
+    surface_points[:, 2] *= z_spacing/10
     return surface_points
