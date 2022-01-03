@@ -18,11 +18,12 @@ To compute radiomics a segmentation mask of the tumor, ablation and the original
 
 ### Usage on the command line
 
-    python -m qam -t tumor_file -a ablation_file -l liver_file -om output_filename -p patient_id
+    python -m AVOLT -t tumor_filepath -a ablation_filepath -tct tumorCTsource_filepath -act ablationCTsource_filepath -om output_filepath_xlsx
 
 
+### Usage with automation like Snakemake
 
-### With automation like Snakemake
+It is possible to use the code in an automated way for batch processing when multiple instances are available. An example using Snakemake is provided in the `Snakefile`.
 
-It is possible to use the code in an automated way. An example using Snakemake is provided in the `Snakefile`
+### Data visualization of extracted radiomics
 
