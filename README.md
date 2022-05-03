@@ -9,8 +9,6 @@ Additionally, an inner an outer ellipsoid are computed using convex optimization
 You can find more about ablation treatments for liver cancer in the following open access book chapter ["Stereotactic Image-Guidance for Ablation of Malignant Liver Tumors"](https://www.intechopen.com/online-first/stereotactic-image-guidance-for-ablation-of-malignant-liver-tumors) from Liver Pathology.
 
 
-![image](https://api.intechopen.com/media/chapter/69658/media/F1.png)
-
 
 ## Usage
 
